@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C10K Chat</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="login-screen">
+        <div class="login-container">
+            <h1>C10K Chat</h1>
+            <p class="subtitle">High-Performance Chat Server</p>
+            <form id="login-form">
+                <div class="form-group">
+                    <input type="text" id="username" placeholder="Username" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <input type="password" id="password" placeholder="Password" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="btn-primary">Login</button>
+            </form>
+            <div id="login-error" class="error-message"></div>
+        </div>
+    </div>
+    
+    <div id="chat-screen" style="display:none;">
+        <div id="chat-header">
+            <div class="header-left">
+                <h2>C10K Chat</h2>
+                <span id="current-room" class="room-badge">general</span>
+            </div>
+            <div class="header-right">
+                <span id="current-user" class="user-info"></span>
+                <button id="logout-btn" class="btn-secondary">Logout</button>
+            </div>
+        </div>
+        
+        <div id="chat-container">
+            <div id="chat-messages"></div>
+        </div>
+        
+        <div id="chat-input-container">
+            <form id="message-form">
+                <input type="text" id="message-input" placeholder="Type a message..." required autocomplete="off">
+                <button type="submit" class="btn-send">Send</button>
+            </form>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>

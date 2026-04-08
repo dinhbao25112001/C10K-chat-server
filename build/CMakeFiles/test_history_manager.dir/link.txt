@@ -1,0 +1,1 @@
+/usr/bin/cc  -Wall -Wextra -Werror CMakeFiles/test_history_manager.dir/tests/test_history_manager.c.o CMakeFiles/test_history_manager.dir/src/history_manager.c.o -o test_history_manager  -lpthread 

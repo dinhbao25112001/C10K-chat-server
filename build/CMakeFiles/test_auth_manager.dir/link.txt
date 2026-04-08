@@ -1,0 +1,1 @@
+/usr/bin/cc  -Wall -Wextra -Werror CMakeFiles/test_auth_manager.dir/tests/test_auth_manager.c.o CMakeFiles/test_auth_manager.dir/src/auth_manager.c.o -o test_auth_manager  -lpthread /usr/lib/x86_64-linux-gnu/libcrypto.so 

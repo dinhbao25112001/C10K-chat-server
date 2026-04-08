@@ -1,0 +1,1 @@
+/usr/bin/cc  -Wall -Wextra -Werror CMakeFiles/test_signal_handler.dir/tests/test_signal_handler.c.o CMakeFiles/test_signal_handler.dir/src/signal_handler.c.o -o test_signal_handler  -lpthread 

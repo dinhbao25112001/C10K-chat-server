@@ -1,0 +1,1 @@
+/usr/bin/cc  -Wall -Wextra -Werror CMakeFiles/test_websocket_handler.dir/tests/test_websocket_handler.c.o CMakeFiles/test_websocket_handler.dir/src/websocket_handler.c.o CMakeFiles/test_websocket_handler.dir/src/connection_handler.c.o -o test_websocket_handler  -lpthread /usr/lib/x86_64-linux-gnu/libcrypto.so 

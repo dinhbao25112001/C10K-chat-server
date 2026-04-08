@@ -1,0 +1,10 @@
+test_auth_manager 3 0.010386
+test_connection_handler 3 0.006528
+test_history_manager 3 0.00885087
+test_main 4 0.00253261
+test_message_router 3 0.00413761
+test_signal_handler 3 0.0542739
+test_thread_pool 4 0.334073
+test_websocket_handler 3 0.00351068
+test_shutdown 4 0.068346
+---

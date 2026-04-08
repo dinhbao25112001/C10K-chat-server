@@ -1,0 +1,1 @@
+/usr/bin/cc  -Wall -Wextra -Werror CMakeFiles/test_message_router.dir/tests/test_message_router.c.o CMakeFiles/test_message_router.dir/src/message_router.c.o CMakeFiles/test_message_router.dir/src/task_queue.c.o -o test_message_router  -lpthread 

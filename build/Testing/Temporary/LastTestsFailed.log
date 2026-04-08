@@ -1,0 +1,6 @@
+1:test_auth_manager
+2:test_connection_handler
+3:test_history_manager
+5:test_message_router
+6:test_signal_handler
+8:test_websocket_handler

@@ -1,0 +1,21 @@
+# C10K Chat Server Configuration File
+# Copy this file to config.conf and modify as needed
+
+# Server Configuration
+port=8080
+max_connections=10000
+thread_pool_size=8
+task_queue_capacity=1000
+connection_timeout=300
+epoll_timeout=100
+
+# File Paths
+history_path=chat_history
+credentials_file=config/credentials.txt
+static_files_path=web
+
+# Logging Configuration
+# log_level can be: DEBUG, INFO, WARN, ERROR, CRITICAL
+log_level=INFO
+log_file=logs/server.log
+log_max_size=104857600

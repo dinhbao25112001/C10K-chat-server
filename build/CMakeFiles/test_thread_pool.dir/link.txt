@@ -1,0 +1,1 @@
+/usr/bin/cc  -Wall -Wextra -Werror CMakeFiles/test_thread_pool.dir/tests/test_thread_pool.c.o CMakeFiles/test_thread_pool.dir/src/thread_pool.c.o CMakeFiles/test_thread_pool.dir/src/task_queue.c.o -o test_thread_pool  -lpthread 

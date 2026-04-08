@@ -1,0 +1,1 @@
+/usr/bin/cc  -Wall -Wextra -Werror CMakeFiles/test_main.dir/tests/test_main.c.o -o test_main  -lpthread 

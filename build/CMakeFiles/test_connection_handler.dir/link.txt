@@ -1,0 +1,1 @@
+/usr/bin/cc  -Wall -Wextra -Werror CMakeFiles/test_connection_handler.dir/tests/test_connection_handler.c.o CMakeFiles/test_connection_handler.dir/src/connection_handler.c.o -o test_connection_handler  -lpthread 

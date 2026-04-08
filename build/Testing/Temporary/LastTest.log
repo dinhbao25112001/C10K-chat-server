@@ -1,0 +1,240 @@
+Start testing: Apr 08 16:40 UTC
+----------------------------------------------------------
+1/9 Testing: test_auth_manager
+1/9 Test: test_auth_manager
+Command: "/home/baond/new_project/build/test_auth_manager"
+Directory: /home/baond/new_project/build
+"test_auth_manager" start time: Apr 08 16:40 UTC
+Output:
+----------------------------------------------------------
+Running auth_manager tests...
+
+Test 1: Initialize auth manager... PASSED
+Test 2: Authenticate with valid credentials... PASSED
+Test 3: Authenticate with invalid password... PASSED
+Test 4: Authenticate with non-existent user... PASSED
+Test 5: Create and associate session... PASSED
+Test 6: Invalidate session... PASSED
+Test 7: Session uniqueness... PASSED
+Test 8: Password hashing... PASSED
+
+All tests passed!
+<end of output>
+Test time =   0.03 sec
+----------------------------------------------------------
+Test Passed.
+"test_auth_manager" end time: Apr 08 16:40 UTC
+"test_auth_manager" time elapsed: 00:00:00
+----------------------------------------------------------
+
+2/9 Testing: test_connection_handler
+2/9 Test: test_connection_handler
+Command: "/home/baond/new_project/build/test_connection_handler"
+Directory: /home/baond/new_project/build
+"test_connection_handler" start time: Apr 08 16:40 UTC
+Output:
+----------------------------------------------------------
+Running connection_handler tests...
+
+Testing connection_set_nonblocking...
+  PASS: Socket set to non-blocking mode
+Testing connection_buffer_write...
+  PASS: Data buffered correctly
+Testing connection_is_timeout...
+  PASS: Timeout detection works correctly
+Testing connection_close...
+  PASS: Connection closed and cleaned up
+
+All tests passed!
+<end of output>
+Test time =   0.02 sec
+----------------------------------------------------------
+Test Passed.
+"test_connection_handler" end time: Apr 08 16:40 UTC
+"test_connection_handler" time elapsed: 00:00:00
+----------------------------------------------------------
+
+3/9 Testing: test_history_manager
+3/9 Test: test_history_manager
+Command: "/home/baond/new_project/build/test_history_manager"
+Directory: /home/baond/new_project/build
+"test_history_manager" start time: Apr 08 16:40 UTC
+Output:
+----------------------------------------------------------
+Running history_manager tests...
+
+Test: history_manager_init
+  PASSED
+Test: history_manager_write
+  PASSED
+Test: history_manager_write (multiple rooms)
+  PASSED
+Test: history_manager_flush
+  PASSED
+Test: history_manager_rotate
+  PASSED
+
+All tests passed!
+<end of output>
+Test time =   0.03 sec
+----------------------------------------------------------
+Test Passed.
+"test_history_manager" end time: Apr 08 16:40 UTC
+"test_history_manager" time elapsed: 00:00:00
+----------------------------------------------------------
+
+4/9 Testing: test_main
+4/9 Test: test_main
+Command: "/home/baond/new_project/build/test_main"
+Directory: /home/baond/new_project/build
+"test_main" start time: Apr 08 16:40 UTC
+Output:
+----------------------------------------------------------
+Running main.c initialization tests...
+
+Test: Socket non-blocking configuration... PASSED
+Test: Bind and listen... PASSED
+Test: Configuration defaults... PASSED
+Test: Graceful shutdown sequence... PASSED (smoke test)
+
+All tests passed!
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"test_main" end time: Apr 08 16:40 UTC
+"test_main" time elapsed: 00:00:00
+----------------------------------------------------------
+
+5/9 Testing: test_message_router
+5/9 Test: test_message_router
+Command: "/home/baond/new_project/build/test_message_router"
+Directory: /home/baond/new_project/build
+"test_message_router" start time: Apr 08 16:40 UTC
+Output:
+----------------------------------------------------------
+Running message_router tests...
+
+Test 1: Initialize message router... PASSED
+Test 2: Parse valid JSON message... PASSED
+Test 3: Parse message without timestamp... PASSED
+Test 4: Parse invalid message... PASSED
+Test 5: Register and unregister connection... PASSED
+Test 6: Parse message with long content... PASSED
+Test 7: Initialize with invalid parameters... PASSED
+
+All tests passed!
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"test_message_router" end time: Apr 08 16:40 UTC
+"test_message_router" time elapsed: 00:00:00
+----------------------------------------------------------
+
+6/9 Testing: test_signal_handler
+6/9 Test: test_signal_handler
+Command: "/home/baond/new_project/build/test_signal_handler"
+Directory: /home/baond/new_project/build
+"test_signal_handler" start time: Apr 08 16:40 UTC
+Output:
+----------------------------------------------------------
+Received signal 15, initiating shutdown
+Received signal 2, initiating shutdown
+Received signal 15, initiating shutdown
+Running signal_handler tests...
+
+✓ test_signal_handler_init passed
+✓ test_signal_handler_should_shutdown passed
+✓ test_signal_handler_start_stop passed
+✓ test_signal_handler_sigint passed
+✓ test_signal_handler_sigterm passed
+
+✓ All tests passed!
+<end of output>
+Test time =   0.16 sec
+----------------------------------------------------------
+Test Passed.
+"test_signal_handler" end time: Apr 08 16:40 UTC
+"test_signal_handler" time elapsed: 00:00:00
+----------------------------------------------------------
+
+7/9 Testing: test_thread_pool
+7/9 Test: test_thread_pool
+Command: "/home/baond/new_project/build/test_thread_pool"
+Directory: /home/baond/new_project/build
+"test_thread_pool" start time: Apr 08 16:40 UTC
+Output:
+----------------------------------------------------------
+Running thread pool tests...
+
+Test 1: Thread pool initialization and destruction...
+  ✓ Passed
+Test 2: Task submission and execution...
+  ✓ Passed (processed 100 tasks)
+Test 3: Invalid parameters...
+  ✓ Passed
+Test 4: Shutdown behavior...
+  ✓ Passed (all 50 tasks completed before shutdown)
+
+✓ All tests passed!
+<end of output>
+Test time =   1.34 sec
+----------------------------------------------------------
+Test Passed.
+"test_thread_pool" end time: Apr 08 16:40 UTC
+"test_thread_pool" time elapsed: 00:00:01
+----------------------------------------------------------
+
+8/9 Testing: test_websocket_handler
+8/9 Test: test_websocket_handler
+Command: "/home/baond/new_project/build/test_websocket_handler"
+Directory: /home/baond/new_project/build
+"test_websocket_handler" start time: Apr 08 16:40 UTC
+Output:
+----------------------------------------------------------
+Running websocket_handler tests...
+
+Test 1: Parse simple text frame... PASSED
+Test 2: Encode simple text frame... PASSED
+Test 3: Encode frame with extended length... PASSED
+Test 4: Parse close frame... PASSED
+Test 5: Parse invalid frame (too short)... PASSED
+Test 6: Encode close frame... PASSED
+Test 7: WebSocket handshake with valid request... PASSED
+Test 8: WebSocket handshake with invalid request... PASSED
+
+All tests passed!
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"test_websocket_handler" end time: Apr 08 16:40 UTC
+"test_websocket_handler" time elapsed: 00:00:00
+----------------------------------------------------------
+
+9/9 Testing: test_shutdown
+9/9 Test: test_shutdown
+Command: "/home/baond/new_project/build/test_shutdown"
+Directory: /home/baond/new_project/build
+"test_shutdown" start time: Apr 08 16:40 UTC
+Output:
+----------------------------------------------------------
+Running graceful shutdown tests...
+
+Test: Shutdown with active connections... PASSED
+Test: Thread pool drains all tasks... PASSED
+Test: History manager flushes pending writes... PASSED
+Test: All resources freed during shutdown... PASSED
+
+All shutdown tests passed!
+Verified Requirements: 4.4, 4.5, 4.6, 4.7, 4.8, 4.9
+<end of output>
+Test time =   0.27 sec
+----------------------------------------------------------
+Test Passed.
+"test_shutdown" end time: Apr 08 16:40 UTC
+"test_shutdown" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Apr 08 16:40 UTC
