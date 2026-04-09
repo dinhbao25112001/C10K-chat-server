@@ -10,8 +10,6 @@
 #include <arpa/inet.h>
 
 #define WS_GUID "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
-#define WS_OPCODE_TEXT 0x1
-#define WS_OPCODE_CLOSE 0x8
 
 /* Base64 encode helper */
 static char* base64_encode(const unsigned char *input, int length) {

@@ -163,6 +163,7 @@ class ChatClient {
             this.ws.close();
         }
         this.showLoginScreen();
+        this.connect();
     }
 
     escapeHtml(text) {

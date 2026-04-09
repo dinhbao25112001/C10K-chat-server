@@ -2,7 +2,7 @@
 + language : C
 + environment : Ubuntu 24.04.3
 + language for frontend : HTML, CSS, JS
-+  
++ build system : Cmake
 
 
 WebServer

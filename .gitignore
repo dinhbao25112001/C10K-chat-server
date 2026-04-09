@@ -1,0 +1,51 @@
+# Build directory
+build/
+*.o
+*.a
+*.so
+
+# Executables
+c10k-chat-server
+test_*
+!tests/test_*.c
+
+# CMake files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.cmake
+!CMakeLists.txt
+
+# Logs
+logs/*.log
+*.log
+
+# Chat history
+chat_history/
+
+# Configuration files with sensitive data
+config/credentials.txt
+config/config.conf
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Core dumps
+core
+core.*
+
+# Temporary files
+*.tmp
+*.bak

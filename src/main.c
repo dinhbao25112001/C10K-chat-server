@@ -50,6 +50,7 @@ typedef struct server_context {
     task_queue_t *task_queue;
     connection_t *connections;
     int max_connections;
+    char static_files_path[PATH_MAX];
 } server_context_t;
 
 /* Task data structures */
@@ -93,7 +94,7 @@ static void handle_auth_task(void *data) {
     server_context_t *ctx = task_data->ctx;
     
     /* Check if this is an HTTP request (starts with GET, POST, etc.) */
-    if (conn->read_offset > 0 && 
+    if (conn->state == CONN_CONNECTING && conn->read_offset > 0 && 
         (strncmp(conn->read_buffer, "GET ", 4) == 0 ||
          strncmp(conn->read_buffer, "POST ", 5) == 0)) {
         
@@ -109,14 +110,16 @@ static void handle_auth_task(void *data) {
                     conn->state = CONN_AUTHENTICATING;
                     conn->is_websocket = true;
                     printf("WebSocket connection established on fd %d\n", conn->socket_fd);
+                    
+                    /* Register for EPOLLOUT to send buffered handshake response */
+                    epoll_manager_modify(ctx->epoll_manager, conn->socket_fd, 
+                                       EPOLLIN | EPOLLOUT, conn);
                 } else {
                     conn->state = CONN_CLOSING;
                 }
             } else {
                 /* Serve static file */
-                /* Get static files path from config - we'll need to pass it through context */
-                /* For now, use default path */
-                serve_static_file(conn, "web", path);
+                serve_static_file(conn, ctx->static_files_path, path);
                 
                 /* Mark connection for closing after sending response */
                 conn->state = CONN_CLOSING;
@@ -126,33 +129,59 @@ static void handle_auth_task(void *data) {
                                    EPOLLIN | EPOLLOUT, conn);
             }
         }
-    } else {
-        /* For now, create a simple authenticated session */
-        /* In a real implementation, this would parse auth credentials from read_buffer */
-        client_session_t *session = NULL;
-        
-        /* Simple authentication: extract username from buffer (simplified) */
-        /* Real implementation would parse JSON auth message */
-        char username[USERNAME_MAX] = "user";
-        snprintf(username, sizeof(username), "user_%d", conn->socket_fd);
-        
-        int result = auth_manager_create_session(ctx->auth_manager, username, &session);
-        if (result == ERR_SUCCESS && session) {
-            auth_manager_associate_session(ctx->auth_manager, session, conn->socket_fd);
-            conn->session = session;
-            conn->state = CONN_AUTHENTICATED;
-            
-            /* Set default room */
-            strncpy(session->room, "general", ROOMNAME_MAX - 1);
-            
-            /* Register connection with message router */
-            message_router_register(ctx->message_router, conn);
-            
-            printf("Client %d authenticated as %s\n", conn->socket_fd, username);
-        } else {
-            /* Authentication failed, close connection */
-            conn->state = CONN_CLOSING;
+    } else if (conn->state == CONN_AUTHENTICATING && conn->is_websocket) {
+        websocket_frame_t frame;
+        if (websocket_parse_frame(conn->read_buffer, conn->read_offset, &frame) == ERR_SUCCESS) {
+            if (frame.opcode == WS_OPCODE_TEXT) {
+                char username[USERNAME_MAX] = "user";
+                const char *username_key = "\"username\":\"";
+                char *username_start = strstr(frame.payload, username_key);
+                if (username_start) {
+                    username_start += strlen(username_key);
+                    char *username_end = strchr(username_start, '"');
+                    if (username_end) {
+                        size_t len = username_end - username_start;
+                        if (len >= USERNAME_MAX) len = USERNAME_MAX - 1;
+                        strncpy(username, username_start, len);
+                        username[len] = '\0';
+                    }
+                } else {
+                    snprintf(username, sizeof(username), "user_%d", conn->socket_fd);
+                }
+                
+                client_session_t *session = NULL;
+                int result = auth_manager_create_session(ctx->auth_manager, username, &session);
+                if (result == ERR_SUCCESS && session) {
+                    auth_manager_associate_session(ctx->auth_manager, session, conn->socket_fd);
+                    conn->session = session;
+                    conn->state = CONN_AUTHENTICATED;
+                    
+                    strncpy(session->room, "general", ROOMNAME_MAX - 1);
+                    message_router_register(ctx->message_router, conn);
+                    
+                    printf("Client %d authenticated as %s\n", conn->socket_fd, username);
+                    
+                    /* Send auth success */
+                    char response[256];
+                    snprintf(response, sizeof(response), "{\"type\":\"auth_success\",\"username\":\"%s\"}", username);
+                    char ws_frame[1024];
+                    size_t ws_frame_len = sizeof(ws_frame);
+                    if (websocket_encode_frame(response, strlen(response), WS_OPCODE_TEXT, ws_frame, &ws_frame_len) == ERR_SUCCESS) {
+                        connection_buffer_write(conn, ws_frame, ws_frame_len);
+                        epoll_manager_modify(ctx->epoll_manager, conn->socket_fd, EPOLLIN | EPOLLOUT, conn);
+                    }
+                } else {
+                    conn->state = CONN_CLOSING;
+                }
+            } else if (frame.opcode == WS_OPCODE_CLOSE) {
+                conn->state = CONN_CLOSING;
+            }
+            if (frame.payload) free(frame.payload);
+            conn->read_offset = 0;
         }
+    } else {
+        /* Authentication failed or invalid state */
+        conn->state = CONN_CLOSING;
     }
     
     free(task_data);
@@ -171,7 +200,21 @@ static void handle_message_process_task(void *data) {
     
     /* Parse message from read buffer */
     message_t msg;
-    int result = message_router_parse(conn->read_buffer, conn->read_offset, &msg);
+    int result = ERR_INVALID_PARAM;
+    
+    if (conn->is_websocket) {
+        websocket_frame_t frame;
+        if (websocket_parse_frame(conn->read_buffer, conn->read_offset, &frame) == ERR_SUCCESS) {
+            if (frame.opcode == WS_OPCODE_TEXT) {
+                result = message_router_parse(frame.payload, strlen(frame.payload), &msg);
+            } else if (frame.opcode == WS_OPCODE_CLOSE) {
+                conn->state = CONN_CLOSING;
+            }
+            if (frame.payload) free(frame.payload);
+        }
+    } else {
+        result = message_router_parse(conn->read_buffer, conn->read_offset, &msg);
+    }
     
     if (result == ERR_SUCCESS) {
         /* Find all recipients in the same room and enqueue send tasks */
@@ -274,11 +317,22 @@ static void handle_message_send_task(void *data) {
                       msg->sender, msg->room, msg->content, (long)msg->timestamp);
     
     if (len > 0 && (size_t)len < sizeof(buffer)) {
-        /* Buffer message for sending */
-        if (connection_buffer_write(conn, buffer, len) == ERR_SUCCESS) {
-            /* Register for EPOLLOUT to send buffered data */
-            epoll_manager_modify(ctx->epoll_manager, conn->socket_fd, 
-                               EPOLLIN | EPOLLOUT, conn);
+        if (conn->is_websocket) {
+            char ws_frame[2048];
+            size_t ws_frame_len = sizeof(ws_frame);
+            if (websocket_encode_frame(buffer, len, WS_OPCODE_TEXT, ws_frame, &ws_frame_len) == ERR_SUCCESS) {
+                if (connection_buffer_write(conn, ws_frame, ws_frame_len) == ERR_SUCCESS) {
+                    epoll_manager_modify(ctx->epoll_manager, conn->socket_fd, 
+                                       EPOLLIN | EPOLLOUT, conn);
+                }
+            }
+        } else {
+            /* Buffer message for sending */
+            if (connection_buffer_write(conn, buffer, len) == ERR_SUCCESS) {
+                /* Register for EPOLLOUT to send buffered data */
+                epoll_manager_modify(ctx->epoll_manager, conn->socket_fd, 
+                                   EPOLLIN | EPOLLOUT, conn);
+            }
         }
     }
     
@@ -378,9 +432,19 @@ static int serve_static_file(connection_t *conn, const char *static_files_path, 
     /* Build full file path */
     char file_path[PATH_MAX];
     
+    /* Strip query string from request path if present */
+    char clean_path[256];
+    strncpy(clean_path, request_path, sizeof(clean_path) - 1);
+    clean_path[sizeof(clean_path) - 1] = '\0';
+    
+    char *query = strchr(clean_path, '?');
+    if (query) {
+        *query = '\0';
+    }
+    
     /* Default to index.html if root path requested */
-    const char *file_name = request_path;
-    if (strcmp(request_path, "/") == 0) {
+    const char *file_name = clean_path;
+    if (strcmp(clean_path, "/") == 0 || strlen(clean_path) == 0) {
         file_name = "/index.html";
     }
     
@@ -428,7 +492,7 @@ static int serve_static_file(connection_t *conn, const char *static_files_path, 
                              "HTTP/1.1 200 OK\r\n"
                              "Content-Type: %s\r\n"
                              "Content-Length: %ld\r\n"
-                             "Connection: keep-alive\r\n"
+                             "Connection: close\r\n"
                              "\r\n",
                              content_type, file_size);
     
@@ -456,16 +520,25 @@ static int load_config(server_config_t *config, const char *config_file) {
         return ERR_INVALID_PARAM;
     }
     
-    /* Set default values */
+    /* Set default values and determine starting directory context */
     config->port = DEFAULT_PORT;
     config->max_connections = DEFAULT_MAX_CONNECTIONS;
     config->thread_pool_size = DEFAULT_THREAD_POOL_SIZE;
     config->task_queue_capacity = DEFAULT_TASK_QUEUE_CAPACITY;
     config->connection_timeout_seconds = DEFAULT_CONNECTION_TIMEOUT;
     config->epoll_timeout_ms = DEFAULT_EPOLL_TIMEOUT;
-    strncpy(config->history_base_path, "chat_history", PATH_MAX - 1);
-    strncpy(config->credentials_file, "config/credentials.txt", PATH_MAX - 1);
-    strncpy(config->static_files_path, "web", PATH_MAX - 1);
+    
+    FILE *test_fp = fopen("web/index.html", "r");
+    if (test_fp) {
+        fclose(test_fp);
+        strncpy(config->history_base_path, "chat_history", PATH_MAX - 1);
+        strncpy(config->credentials_file, "config/credentials.txt", PATH_MAX - 1);
+        strncpy(config->static_files_path, "web", PATH_MAX - 1);
+    } else {
+        strncpy(config->history_base_path, "../chat_history", PATH_MAX - 1);
+        strncpy(config->credentials_file, "../config/credentials.txt", PATH_MAX - 1);
+        strncpy(config->static_files_path, "../web", PATH_MAX - 1);
+    }
     
     /* If config file provided, parse it */
     if (config_file) {
@@ -718,6 +791,8 @@ int main(int argc, char *argv[]) {
         .connections = connections,
         .max_connections = config.max_connections
     };
+    strncpy(server_ctx.static_files_path, config.static_files_path, PATH_MAX - 1);
+    server_ctx.static_files_path[PATH_MAX - 1] = '\0';
     
     /* Track last timeout check time */
     time_t last_timeout_check = time(NULL);
@@ -864,8 +939,8 @@ int main(int argc, char *argv[]) {
                         }
                     } else if (n > 0) {
                         /* Data received */
-                        if (conn->state == CONN_CONNECTING) {
-                            /* First data received, enqueue auth task to determine connection type */
+                        if (conn->state == CONN_CONNECTING || conn->state == CONN_AUTHENTICATING) {
+                            /* First data received or auth frame, enqueue auth task to process */
                             auth_task_data_t *auth_data = malloc(sizeof(auth_task_data_t));
                             if (auth_data) {
                                 auth_data->conn = conn;

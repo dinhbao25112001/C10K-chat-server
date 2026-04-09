@@ -4,6 +4,13 @@
 #include "common.h"
 #include "connection_handler.h"
 
+#define WS_OPCODE_CONTINUATION 0x0
+#define WS_OPCODE_TEXT 0x1
+#define WS_OPCODE_BINARY 0x2
+#define WS_OPCODE_CLOSE 0x8
+#define WS_OPCODE_PING 0x9
+#define WS_OPCODE_PONG 0xA
+
 typedef struct websocket_frame {
     uint8_t opcode;
     bool fin;
